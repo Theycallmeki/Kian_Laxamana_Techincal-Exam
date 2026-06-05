@@ -10,6 +10,8 @@ const error = ref(null)
 
 const showModal = ref(false)
 const isEditing = ref(false)
+const isSaving = ref(false)
+const deletingId = ref(null)
 const form = ref({
   id: null,
   firstname: '',
@@ -64,6 +66,7 @@ const openEditModal = (emp) => {
 }
 
 const saveEmployee = async () => {
+  isSaving.value = true
   try {
     if (isEditing.value) {
       await api.updateEmployee(form.value.id, form.value)
@@ -75,17 +78,22 @@ const saveEmployee = async () => {
   } catch (err) {
     alert('Failed to save employee. Check your validation rules!')
     console.error(err)
+  } finally {
+    isSaving.value = false
   }
 }
 
 const deleteEmployee = async (id) => {
   if (!confirm('Are you sure you want to delete this employee?')) return
   
+  deletingId.value = id
   try {
     await api.deleteEmployee(id)
     fetchEmployees()
   } catch (err) {
     alert('Failed to delete employee')
+  } finally {
+    deletingId.value = null
   }
 }
 </script>
@@ -137,8 +145,10 @@ const deleteEmployee = async (id) => {
           <td class="px-6 py-4 whitespace-nowrap">{{ emp.email }}</td>
           <td class="px-6 py-4 whitespace-nowrap">{{ emp.factory ? emp.factory.factory_name : 'N/A' }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-right font-medium">
-            <button @click="openEditModal(emp)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-            <button @click="deleteEmployee(emp.id)" class="text-red-600 hover:text-red-900">Delete</button>
+            <button @click="openEditModal(emp)" class="text-indigo-600 hover:text-indigo-900 mr-4" :disabled="deletingId === emp.id">Edit</button>
+            <button @click="deleteEmployee(emp.id)" class="text-red-600 hover:text-red-900 disabled:opacity-50" :disabled="deletingId === emp.id">
+              {{ deletingId === emp.id ? 'Deleting...' : 'Delete' }}
+            </button>
           </td>
         </tr>
       </tbody>
@@ -181,8 +191,10 @@ const deleteEmployee = async (id) => {
           </div>
 
           <div class="flex justify-end gap-2 mt-6">
-            <button type="button" @click="showModal = false" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancel</button>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Save</button>
+            <button type="button" @click="showModal = false" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" :disabled="isSaving">Cancel</button>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50" :disabled="isSaving">
+              {{ isSaving ? 'Saving...' : 'Save' }}
+            </button>
           </div>
         </form>
       </div>

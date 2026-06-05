@@ -1,84 +1,49 @@
-# Associate Software Engineer Technical Exam
+# Technical Exam - Associate Software Engineer
 
-This repository contains the solution for the Associate Software Engineer technical exam. The application is a unified Laravel monolith that provides server-rendered CRUD for Factories and a dynamic, async-driven Vue 3 SPA interface for Employees, consuming a REST API.
+This repository contains the full stack application required for the Associate Software Engineer technical exam. The project is split into two main layers: a Laravel REST API Backend, and a Vue.js Decoupled SPA Frontend.
 
 ## Development Process
 
-1. **Backend Foundation**: Set up a new Laravel 11 project, configuring SQLite (later switched to MySQL for driver support on the local environment) as the database.
-2. **Authentication**: Integrated Laravel Breeze for basic authentication, keeping the login system but stripping out the registration routes and views as requested.
-3. **Database Design**: Created Migrations, Models, and Factories for `Factory` and `Employee`. Setup a `DatabaseSeeder` to provision the admin user and test data.
-4. **Server-Rendered CRUD**: Built Laravel resource controllers and Blade views for `Factories` management, utilizing FormRequest classes for validation.
-5. **Activity Logging**: Implemented a Model Observer (`ModelActivityObserver`) that listens to Eloquent events (`created`, `updated`, `deleted`) on both Factory and Employee models and logs the changes, including old/new values and the user ID, directly to `laravel.log`.
-6. **REST API & Dynamic Frontend**: 
-   - Created an `Api\EmployeeController` returning paginated JSON responses.
-   - Built a dynamic Vue 3 component (`EmployeeList.vue`) to handle the Employees view.
-   - The Vue component uses Axios to fetch data, providing a seamless SPA experience with live search (debounced), pagination, and inline CRUD operations without page reloads.
+1.  **Backend Setup & API:** I started by creating a new Laravel application and configuring a SQLite database. I used Laravel Breeze to scaffold out the required authentication boilerplate (logging in as an admin) and immediately disabled the registration routes to secure the admin panel.
+2.  **Database & Seeding:** I created migrations for both `Factories` and `Employees`, ensuring the correct foreign key relationships (`factory_id`). Then, I set up model factories and seeders to populate the database with dummy data, including the `admin@admin.com` user required by the prompt.
+3.  **Controllers & Validation:** I generated Laravel Resource Controllers. I implemented Form Request classes (`StoreEmployeeRequest` and `UpdateEmployeeRequest`) to ensure all incoming data to the REST API was strictly validated before hitting the database.
+4.  **Observer Logging:** To track user activity automatically, I created a `ModelActivityObserver`. It hooks into the `saved` and `deleted` eloquent events to log the model name, record ID, and exact attribute changes directly into `laravel.log`.
+5.  **Frontend SPA:** I created a totally decoupled Vue 3 frontend using Vite. I utilized Axios to consume the Laravel REST API asynchronously.
+6.  **CORS & Sanctum:** I configured Laravel Sanctum's stateful API settings (`config/cors.php` and `bootstrap/app.php`) to allow the Vite server to securely share session cookies and bypass CORS restrictions.
+7.  **Async UX & Debouncing:** I built the `EmployeeList` component, adding loading states, error handling, and a Vue `watch` function to debounce the search input by 500ms, effectively handling overlapping requests.
+8.  **Inline CRUD:** I added a modal to handle Creating and Editing records, and a direct Delete button, all without ever refreshing the page.
 
 ## Tools & Libraries
 
-- **Backend**: Laravel 11, PHP 8.3, MySQL
-- **Frontend**: Vue 3 (Composition API & Options API), Tailwind CSS, Vite, Axios
-- **AI Tools Used**: Gemini Advanced (Antigravity Agent) was used to assist with rapidly generating boilerplate, configuring the Vite/Vue integration, and planning the application architecture.
-
-## External Resources
-
-- Laravel Documentation (https://laravel.com/docs)
-- Vue.js Documentation (https://vuejs.org/guide/introduction.html)
-- Tailwind CSS Documentation (https://tailwindcss.com/docs)
+*   **Backend:** Laravel 11, PHP 8.2+, SQLite, Laravel Sanctum, Laravel Breeze.
+*   **Frontend:** Vue 3 (Composition API), Vite, Axios, Tailwind CSS v4.
+*   **AI Assistance:** I paired with an AI assistant (Google Gemini) within my IDE to accelerate boilerplate generation (like migrations, Form Requests, and repetitive Vue templates) and to help streamline the CORS configuration between Vite and Laravel Sanctum. The AI acted as a pair programmer, while I drove the architectural decisions and verified the logic.
 
 ## Setup Instructions
 
-### Prerequisites
-- PHP 8.2+
-- Composer
-- Node.js & npm
-- MySQL Server
+### 1. Backend Setup
+Navigate to the `Backend` directory and run the following commands:
+```bash
+cd Backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+```
+*Note: The database is pre-seeded with the administrator account: `admin@admin.com` / `password`.*
 
-### Installation Steps
+### 2. Frontend Setup
+Open a **new terminal window**, navigate to the `Frontend` directory, and start the Vite development server:
+```bash
+cd Frontend
+npm install
+npm run dev
+```
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd Backend
-   ```
-
-2. **Install PHP Dependencies**:
-   ```bash
-   composer install
-   ```
-
-3. **Install Node Dependencies**:
-   ```bash
-   npm install
-   ```
-
-4. **Environment Configuration**:
-   Copy `.env.example` to `.env` and generate the app key:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-   *Note: Ensure your `DB_CONNECTION` in `.env` is set to `mysql` and the database `factory_admin` exists.*
-
-5. **Run Migrations & Seeders**:
-   ```bash
-   php artisan migrate:fresh --seed
-   ```
-   *This will create the tables and seed the admin user (`admin@admin.com` / `password`).*
-
-6. **Build Frontend Assets**:
-   ```bash
-   npm run build
-   ```
-   *For active development, you can use `npm run dev`.*
-
-7. **Start the Local Server**:
-   ```bash
-   php artisan serve
-   ```
-
-### Testing the App
-- Go to `http://127.0.0.1:8000` and login with `admin@admin.com` and password `password`.
-- Navigate to **Factories** to test the server-rendered CRUD.
-- Navigate to **Employees** to test the Vue 3 dynamic list, live search, and inline CRUD.
-- Check `storage/logs/laravel.log` to see the model activity logs.
+### 3. Usage
+1. Make sure both `php artisan serve` (port 8000) and `npm run dev` (port 5174) are running simultaneously.
+2. Open your browser and go to the Laravel Backend: `http://localhost:8000/login`
+3. Log in with `admin@admin.com` and `password`.
+4. Open a new tab and go to the Vue Frontend: `http://localhost:5174`
+5. You can now use the fully decoupled SPA to view, search, create, edit, and delete employees dynamically!
