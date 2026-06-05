@@ -146,6 +146,7 @@ const deleteEmployee = async (id) => {
         </template>
       </Column>
       <Column field="email" header="Email"></Column>
+      <Column field="phone" header="Phone"></Column>
       <Column header="Factory">
         <template #body="slotProps">
           <span v-if="slotProps.data.factory" class="px-2 py-1 bg-blue-900 text-blue-100 rounded text-sm">
@@ -154,25 +155,26 @@ const deleteEmployee = async (id) => {
           <span v-else class="text-gray-400 italic">N/A</span>
         </template>
       </Column>
-      <Column header="Actions" :exportable="false" style="min-width:12rem; text-align:right">
+      <Column header="Actions" :exportable="false" style="min-width:8rem">
         <template #body="slotProps">
-          <Button 
-            icon="pi pi-pencil" 
-            severity="secondary"
-            text
-            rounded 
-            class="mr-2" 
-            @click="openEditModal(slotProps.data)" 
-            :disabled="deletingId === slotProps.data.id"
-          />
-          <Button 
-            icon="pi pi-trash" 
-            severity="danger"
-            text
-            rounded 
-            @click="deleteEmployee(slotProps.data.id)" 
-            :loading="deletingId === slotProps.data.id"
-          />
+          <div class="flex justify-start gap-2 -ml-3">
+            <Button 
+              icon="pi pi-pencil" 
+              severity="secondary"
+              text
+              rounded 
+              @click="openEditModal(slotProps.data)" 
+              :disabled="deletingId === slotProps.data.id"
+            />
+            <Button 
+              icon="pi pi-trash" 
+              severity="danger"
+              text
+              rounded 
+              @click="deleteEmployee(slotProps.data.id)" 
+              :loading="deletingId === slotProps.data.id"
+            />
+          </div>
         </template>
       </Column>
     </DataTable>
