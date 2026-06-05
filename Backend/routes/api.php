@@ -8,9 +8,11 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('employees', \App\Http\Controllers\Api\EmployeeController::class);
+    // We added ->names('api.employees') here so it doesn't conflict with web routes!
+    Route::apiResource('employees', \App\Http\Controllers\Api\EmployeeController::class)->names('api.employees');
+
     // Also we might need to get factories for the select dropdown when editing an employee
-    Route::get('factories', function() {
+    Route::get('factories', function () {
         return response()->json(\App\Models\Factory::all());
     });
 });
