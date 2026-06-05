@@ -3,7 +3,7 @@ import EmployeeList from './components/EmployeeList.vue'
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 text-gray-900 font-sans p-8">
+  <div class="min-h-screen font-sans p-8">
     <div class="max-w-7xl mx-auto">
       <header class="mb-8 flex justify-between items-center">
         <h1 class="text-3xl font-bold text-gray-800">

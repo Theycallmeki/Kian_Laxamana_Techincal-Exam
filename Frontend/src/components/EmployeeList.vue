@@ -3,6 +3,16 @@ import { ref, onMounted, watch } from 'vue'
 import api from '../services/api'
 import { useLoader } from '../composables/useLoader'
 
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
+import Message from 'primevue/message'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+
 const employees = ref([])
 const factories = ref([])
 const { isLoading, startLoading, stopLoading } = useLoader()
@@ -100,106 +110,119 @@ const deleteEmployee = async (id) => {
 </script>
 
 <template>
-  <div class="bg-white shadow rounded-lg p-6 relative">
+  <div class="p-6 relative">
     
     <!-- Error Alert -->
-    <div v-if="error" class="bg-red-100 text-red-800 p-4 rounded mb-4">
+    <Message v-if="error" severity="error" :closable="false" class="mb-4">
       {{ error }}
-    </div>
+    </Message>
 
     <!-- Toolbar: Search & Add -->
     <div class="flex justify-between items-center mb-6">
-      <input 
-        v-model="searchQuery" 
-        type="text" 
-        placeholder="Search by first or last name..." 
-        class="border border-gray-300 rounded-md shadow-sm w-1/3 p-2 text-gray-900"
-      >
-      <button @click="openCreateModal" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
-        + Add Employee
-      </button>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="isLoading" class="text-center py-10 text-gray-500">
-      Loading employees asynchronously...
-    </div>
-
-    <!-- Empty State -->
-    <div v-else-if="employees.length === 0" class="text-center py-10 text-gray-500">
-      No employees found.
+      <IconField iconPosition="left" class="w-1/3">
+        <InputIcon class="pi pi-search" />
+        <InputText 
+          v-model="searchQuery" 
+          placeholder="Search by name..." 
+          class="w-full"
+        />
+      </IconField>
+      <Button label="Add Employee" icon="pi pi-plus" @click="openCreateModal" />
     </div>
 
     <!-- Data Table -->
-    <table v-else class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Factory</th>
-          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        <tr v-for="emp in employees" :key="emp.id" class="hover:bg-gray-50 transition">
-          <td class="px-6 py-4 whitespace-nowrap">{{ emp.firstname }} {{ emp.lastname }}</td>
-          <td class="px-6 py-4 whitespace-nowrap">{{ emp.email }}</td>
-          <td class="px-6 py-4 whitespace-nowrap">{{ emp.factory ? emp.factory.factory_name : 'N/A' }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-right font-medium">
-            <button @click="openEditModal(emp)" class="text-indigo-600 hover:text-indigo-900 mr-4" :disabled="deletingId === emp.id">Edit</button>
-            <button @click="deleteEmployee(emp.id)" class="text-red-600 hover:text-red-900 disabled:opacity-50" :disabled="deletingId === emp.id">
-              {{ deletingId === emp.id ? 'Deleting...' : 'Delete' }}
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <DataTable 
+      :value="employees" 
+      :loading="isLoading" 
+      dataKey="id" 
+      stripedRows 
+      responsiveLayout="scroll"
+      emptyMessage="No employees found."
+      class="border rounded-lg overflow-hidden"
+    >
+      <Column header="Name">
+        <template #body="slotProps">
+          <span class="font-medium">{{ slotProps.data.firstname }} {{ slotProps.data.lastname }}</span>
+        </template>
+      </Column>
+      <Column field="email" header="Email"></Column>
+      <Column header="Factory">
+        <template #body="slotProps">
+          <span v-if="slotProps.data.factory" class="px-2 py-1 bg-blue-900 text-blue-100 rounded text-sm">
+            {{ slotProps.data.factory.factory_name }}
+          </span>
+          <span v-else class="text-gray-400 italic">N/A</span>
+        </template>
+      </Column>
+      <Column header="Actions" :exportable="false" style="min-width:12rem; text-align:right">
+        <template #body="slotProps">
+          <Button 
+            icon="pi pi-pencil" 
+            severity="secondary"
+            text
+            rounded 
+            class="mr-2" 
+            @click="openEditModal(slotProps.data)" 
+            :disabled="deletingId === slotProps.data.id"
+          />
+          <Button 
+            icon="pi pi-trash" 
+            severity="danger"
+            text
+            rounded 
+            @click="deleteEmployee(slotProps.data.id)" 
+            :loading="deletingId === slotProps.data.id"
+          />
+        </template>
+      </Column>
+    </DataTable>
 
     <!-- Create/Edit Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-        <h2 class="text-xl font-bold mb-4">{{ isEditing ? 'Edit Employee' : 'Add New Employee' }}</h2>
+    <Dialog 
+      v-model:visible="showModal" 
+      :header="isEditing ? 'Edit Employee' : 'Add New Employee'" 
+      :modal="true" 
+      class="w-full max-w-md"
+    >
+      <form @submit.prevent="saveEmployee" class="flex flex-col gap-4 mt-2">
+        <div class="flex flex-col gap-1">
+          <label class="font-bold text-sm">First Name *</label>
+          <InputText v-model="form.firstname" required />
+        </div>
         
-        <form @submit.prevent="saveEmployee">
-          <div class="mb-4">
-            <label class="block text-gray-700 font-bold mb-1">First Name *</label>
-            <input v-model="form.firstname" type="text" required class="w-full border border-gray-300 rounded p-2 text-gray-900">
-          </div>
-          
-          <div class="mb-4">
-            <label class="block text-gray-700 font-bold mb-1">Last Name *</label>
-            <input v-model="form.lastname" type="text" required class="w-full border border-gray-300 rounded p-2 text-gray-900">
-          </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-bold text-sm">Last Name *</label>
+          <InputText v-model="form.lastname" required />
+        </div>
 
-          <div class="mb-4">
-            <label class="block text-gray-700 font-bold mb-1">Factory</label>
-            <select v-model="form.factory_id" class="w-full border border-gray-300 rounded p-2 text-gray-900">
-              <option value="">-- Select Factory --</option>
-              <option v-for="fac in factories" :key="fac.id" :value="fac.id">
-                {{ fac.factory_name }}
-              </option>
-            </select>
-          </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-bold text-sm">Factory</label>
+          <Select 
+            v-model="form.factory_id" 
+            :options="factories" 
+            optionLabel="factory_name" 
+            optionValue="id" 
+            placeholder="-- Select Factory --" 
+            class="w-full"
+          />
+        </div>
 
-          <div class="mb-4">
-            <label class="block text-gray-700 font-bold mb-1">Email</label>
-            <input v-model="form.email" type="email" class="w-full border border-gray-300 rounded p-2 text-gray-900">
-          </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-bold text-sm">Email</label>
+          <InputText v-model="form.email" type="email" />
+        </div>
 
-          <div class="mb-4">
-            <label class="block text-gray-700 font-bold mb-1">Phone</label>
-            <input v-model="form.phone" type="text" class="w-full border border-gray-300 rounded p-2 text-gray-900">
-          </div>
+        <div class="flex flex-col gap-1">
+          <label class="font-bold text-sm">Phone</label>
+          <InputText v-model="form.phone" />
+        </div>
 
-          <div class="flex justify-end gap-2 mt-6">
-            <button type="button" @click="showModal = false" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" :disabled="isSaving">Cancel</button>
-            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50" :disabled="isSaving">
-              {{ isSaving ? 'Saving...' : 'Save' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-100">
+          <Button label="Cancel" icon="pi pi-times" severity="secondary" text @click="showModal = false" :disabled="isSaving" />
+          <Button label="Save" icon="pi pi-check" type="submit" :loading="isSaving" />
+        </div>
+      </form>
+    </Dialog>
 
   </div>
 </template>
