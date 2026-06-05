@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import axios from 'axios'
+import api from '../services/api'
 
 const employees = ref([])
 const factories = ref([])
@@ -8,7 +8,6 @@ const loading = ref(true)
 const searchQuery = ref('')
 const error = ref(null)
 
-// Modal State
 const showModal = ref(false)
 const isEditing = ref(false)
 const form = ref({
@@ -20,25 +19,15 @@ const form = ref({
   factory_id: ''
 })
 
-// For debouncing search
 let searchTimeout = null
 
-// Load data initially
 const fetchEmployees = async () => {
   loading.value = true
   error.value = null
   try {
-    await axios.get('/sanctum/csrf-cookie')
-    
-    // Fetch Employees
-    const response = await axios.get('/api/employees', {
-      params: { search: searchQuery.value }
-    })
-    employees.value = response.data.data || response.data
-
-    // Fetch Factories for the dropdown
-    const factoryResponse = await axios.get('/api/factories')
-    factories.value = factoryResponse.data
+    await api.initializeCsrf()
+    employees.value = await api.getEmployees(searchQuery.value)
+    factories.value = await api.getFactories()
   } catch (err) {
     console.error(err)
     if (err.response?.status === 401) {
@@ -51,7 +40,6 @@ const fetchEmployees = async () => {
   }
 }
 
-// Watch for changes in search input and debounce the API call
 watch(searchQuery, (newVal) => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
@@ -78,12 +66,12 @@ const openEditModal = (emp) => {
 const saveEmployee = async () => {
   try {
     if (isEditing.value) {
-      await axios.put(`/api/employees/${form.value.id}`, form.value)
+      await api.updateEmployee(form.value.id, form.value)
     } else {
-      await axios.post('/api/employees', form.value)
+      await api.createEmployee(form.value)
     }
     showModal.value = false
-    fetchEmployees() // Refresh the list without page reload!
+    fetchEmployees()
   } catch (err) {
     alert('Failed to save employee. Check your validation rules!')
     console.error(err)
@@ -94,7 +82,7 @@ const deleteEmployee = async (id) => {
   if (!confirm('Are you sure you want to delete this employee?')) return
   
   try {
-    await axios.delete(`/api/employees/${id}`)
+    await api.deleteEmployee(id)
     fetchEmployees()
   } catch (err) {
     alert('Failed to delete employee')
