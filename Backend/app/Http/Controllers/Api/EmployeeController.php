@@ -3,46 +3,48 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreEmployeeRequest;
-use App\Http\Requests\UpdateEmployeeRequest;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        $query = Employee::with('factory')->latest();
-
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where('firstname', 'like', "%{$search}%")
-                  ->orWhere('lastname', 'like', "%{$search}%");
-        }
-
-        return response()->json($query->paginate(10));
+        //
     }
 
-    public function store(StoreEmployeeRequest $request)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
     {
-        $employee = Employee::create($request->validated());
-        return response()->json($employee->load('factory'), 201);
+        //
     }
 
+    /**
+     * Display the specified resource.
+     */
     public function show(Employee $employee)
     {
-        return response()->json($employee->load('factory'));
+        //
     }
 
-    public function update(UpdateEmployeeRequest $request, Employee $employee)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Employee $employee)
     {
-        $employee->update($request->validated());
-        return response()->json($employee->load('factory'));
+        //
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Employee $employee)
     {
-        $employee->delete();
-        return response()->json(null, 204);
+        //
     }
 }
