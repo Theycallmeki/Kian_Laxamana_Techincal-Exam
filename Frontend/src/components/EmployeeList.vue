@@ -1,10 +1,11 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import api from '../services/api'
+import { useLoader } from '../composables/useLoader'
 
 const employees = ref([])
 const factories = ref([])
-const loading = ref(true)
+const { isLoading, startLoading, stopLoading } = useLoader()
 const searchQuery = ref('')
 const error = ref(null)
 
@@ -24,7 +25,7 @@ const form = ref({
 let searchTimeout = null
 
 const fetchEmployees = async () => {
-  loading.value = true
+  startLoading()
   error.value = null
   try {
     await api.initializeCsrf()
@@ -38,7 +39,7 @@ const fetchEmployees = async () => {
       error.value = 'Failed to load data. Is the backend running?'
     }
   } finally {
-    loading.value = false
+    stopLoading()
   }
 }
 
@@ -120,7 +121,7 @@ const deleteEmployee = async (id) => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="text-center py-10 text-gray-500">
+    <div v-if="isLoading" class="text-center py-10 text-gray-500">
       Loading employees asynchronously...
     </div>
 
