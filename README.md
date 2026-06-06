@@ -1,8 +1,8 @@
 # Associate Software Engineer - Technical Exam
 
-Welcome to my submission for the Associate Software Engineer Technical Exam! 
+Welcome to my submission for the Associate Software Engineer Technical Exam
 
-This repository showcases a full-stack solution featuring a highly secure Laravel 11 Backend API beautifully paired with a lightning-fast Vue 3 Single Page Application (SPA). 
+This repository showcases a full-stack solution featuring a highly secure Laravel 11 Backend API paired with a Vue 3 Single Page Application (SPA). 
 
 ---
 
