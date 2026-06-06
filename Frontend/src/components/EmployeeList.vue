@@ -12,6 +12,7 @@ import Select from 'primevue/select'
 import Message from 'primevue/message'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
+import EmployeeFormModal from './EmployeeFormModal.vue'
 
 const employees = ref([])
 const factories = ref([])
@@ -76,13 +77,13 @@ const openEditModal = (emp) => {
   showModal.value = true
 }
 
-const saveEmployee = async () => {
+const saveEmployee = async (formData) => {
   isSaving.value = true
   try {
     if (isEditing.value) {
-      await api.updateEmployee(form.value.id, form.value)
+      await api.updateEmployee(formData.id, formData)
     } else {
-      await api.createEmployee(form.value)
+      await api.createEmployee(formData)
     }
     showModal.value = false
     fetchEmployees()
@@ -179,52 +180,15 @@ const deleteEmployee = async (id) => {
       </Column>
     </DataTable>
 
-    <!-- Create/Edit Modal -->
-    <Dialog 
-      v-model:visible="showModal" 
-      :header="isEditing ? 'Edit Employee' : 'Add New Employee'" 
-      :modal="true" 
-      class="w-full max-w-md"
-    >
-      <form @submit.prevent="saveEmployee" class="flex flex-col gap-4 mt-2">
-        <div class="flex flex-col gap-1">
-          <label class="font-bold text-sm">First Name *</label>
-          <InputText v-model="form.firstname" required />
-        </div>
-        
-        <div class="flex flex-col gap-1">
-          <label class="font-bold text-sm">Last Name *</label>
-          <InputText v-model="form.lastname" required />
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="font-bold text-sm">Factory</label>
-          <Select 
-            v-model="form.factory_id" 
-            :options="factories" 
-            optionLabel="factory_name" 
-            optionValue="id" 
-            placeholder="-- Select Factory --" 
-            class="w-full"
-          />
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="font-bold text-sm">Email</label>
-          <InputText v-model="form.email" type="email" />
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="font-bold text-sm">Phone</label>
-          <InputText v-model="form.phone" />
-        </div>
-
-        <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-100">
-          <Button label="Cancel" icon="pi pi-times" severity="secondary" text @click="showModal = false" :disabled="isSaving" />
-          <Button label="Save" icon="pi pi-check" type="submit" :loading="isSaving" />
-        </div>
-      </form>
-    </Dialog>
+    <!-- Create/Edit Modal (Extracted into Child Component!) -->
+    <EmployeeFormModal 
+      v-model:visible="showModal"
+      :isEditing="isEditing"
+      :employeeData="form"
+      :factories="factories"
+      :isSaving="isSaving"
+      @save="saveEmployee"
+    />
 
   </div>
 </template>
