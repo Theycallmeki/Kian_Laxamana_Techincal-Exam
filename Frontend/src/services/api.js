@@ -15,11 +15,11 @@ export default {
             withCredentials: true
         });
     },
-    async getEmployees(searchQuery = '') {
+    async getEmployees(searchQuery = '', page = 1) {
         const response = await apiClient.get('/employees', {
-            params: { search: searchQuery }
+            params: { search: searchQuery, page: page }
         });
-        return response.data.data || response.data;
+        return response.data;
     },
     async getFactories() {
         const response = await axios.get('/api/factories');

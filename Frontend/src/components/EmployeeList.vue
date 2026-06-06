@@ -16,6 +16,7 @@ import EmployeeFormModal from './EmployeeFormModal.vue'
 
 const employees = ref([])
 const factories = ref([])
+const totalRecords = ref(0)
 const { isLoading, startLoading, stopLoading } = useLoader()
 const searchQuery = ref('')
 const error = ref(null)
@@ -35,12 +36,14 @@ const form = ref({
 
 let searchTimeout = null
 
-const fetchEmployees = async () => {
+const fetchEmployees = async (page = 1) => {
   startLoading()
   error.value = null
   try {
     await api.initializeCsrf()
-    employees.value = await api.getEmployees(searchQuery.value)
+    const response = await api.getEmployees(searchQuery.value, page)
+    employees.value = response.data || response
+    totalRecords.value = response.total || employees.value.length
     factories.value = await api.getFactories()
   } catch (err) {
     console.error(err)
@@ -57,13 +60,18 @@ const fetchEmployees = async () => {
 watch(searchQuery, (newVal) => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    fetchEmployees()
+    fetchEmployees(1)
   }, 500)
 })
 
 onMounted(() => {
-  fetchEmployees()
+  fetchEmployees(1)
 })
+
+const onPage = (event) => {
+  // PrimeVue event.page is 0-indexed, Laravel expects 1-indexed
+  fetchEmployees(event.page + 1)
+}
 
 const openCreateModal = () => {
   isEditing.value = false
@@ -86,7 +94,7 @@ const saveEmployee = async (formData) => {
       await api.createEmployee(formData)
     }
     showModal.value = false
-    fetchEmployees()
+    fetchEmployees(1)
   } catch (err) {
     alert('Failed to save employee. Check your validation rules!')
     console.error(err)
@@ -101,7 +109,7 @@ const deleteEmployee = async (id) => {
   deletingId.value = id
   try {
     await api.deleteEmployee(id)
-    fetchEmployees()
+    fetchEmployees(1)
   } catch (err) {
     alert('Failed to delete employee')
   } finally {
@@ -140,6 +148,11 @@ const deleteEmployee = async (id) => {
       responsiveLayout="scroll"
       emptyMessage="No employees found."
       class="border rounded-lg overflow-hidden"
+      lazy
+      paginator
+      :rows="10"
+      :totalRecords="totalRecords"
+      @page="onPage"
     >
       <Column header="Name">
         <template #body="slotProps">
