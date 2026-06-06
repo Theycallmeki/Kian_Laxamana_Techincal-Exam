@@ -1,55 +1,97 @@
-# Technical Exam - Associate Software Engineer
+# Associate Software Engineer - Technical Exam
 
-This repository contains the full stack application required for the Associate Software Engineer technical exam. The project is split into two main layers: a Laravel REST API Backend, and a Vue.js Decoupled SPA Frontend.
+This repository contains the completion of the Associate Software Engineer technical exam. It consists of a decoupled Laravel Backend API and a modern Vue 3 Single Page Application (SPA) Frontend.
 
-## Development Process
+## 1. Development Process
 
-1. **Backend Setup & API:** I started by creating a new Laravel application and configuring a SQLite database. I used Laravel Breeze to scaffold out the required authentication boilerplate (logging in as an admin) and immediately disabled the registration routes to secure the admin panel.
-2. **Database & Seeding:** I created migrations for both `Factories` and `Employees`, ensuring the correct foreign key relationships (`factory_id`). Then, I set up model factories and seeders to populate the database with dummy data, including the `admin@admin.com` user required by the prompt.
-3. **Controllers & Validation:** I generated Laravel Resource Controllers. I implemented Form Request classes (`StoreEmployeeRequest` and `UpdateEmployeeRequest`) to ensure all incoming data to the REST API was strictly validated before hitting the database.
-4. **Observer Logging:** To track user activity automatically, I created a `ModelActivityObserver`. It hooks into the `saved` and `deleted` eloquent events to log the model name, record ID, and exact attribute changes directly into `laravel.log`.
-5. **Frontend SPA:** I created a totally decoupled Vue 3 frontend using Vite. I utilized Axios to consume the Laravel REST API asynchronously.
-6. **CORS & Sanctum:** I configured Laravel Sanctum's stateful API settings (`config/cors.php` and `bootstrap/app.php`) to allow the Vite server to securely share session cookies and bypass CORS restrictions.
-7. **Async UX & Debouncing:** I built the `EmployeeList` component, adding loading states, error handling, and a Vue `watch` function to debounce the search input by 500ms, effectively handling overlapping requests.
-8. **Inline CRUD:** I added a modal to handle Creating and Editing records, and a direct Delete button, all without ever refreshing the page.
+**Approach:**
+1. **Backend Infrastructure:** I started by scaffolding a Laravel 11 application. I installed Laravel Breeze for authentication and surgically removed the registration capabilities as requested. I then created migrations, factories, and seeders for the `Factories` and `Employees` tables.
+2. **REST API & Observers:** I built resource controllers to handle CRUD operations and implemented a `ModelActivityObserver` to hook into Eloquent events (created, updated, deleted) and log all tracking data (including old and new values) directly into `laravel.log`.
+3. **Frontend SPA:** I created a separate Vue 3 application using Vite. I integrated PrimeVue components and Tailwind CSS for a highly polished, responsive dark-mode UI.
+4. **Asynchronous Integration:** I connected the frontend to the backend via Axios, configuring Laravel Sanctum for secure CSRF cookie-based authentication. I implemented a dynamic data table with live debounce searching, loading states, and inline Create/Edit/Delete modals to ensure the user never has to reload the page.
 
-## Tools & Libraries
+**Challenges & Solutions:**
+- **Cross-Origin Authentication:** Connecting a standalone Vue dev server to a Laravel backend often leads to CORS and Sanctum cookie issues. I addressed this by carefully configuring Laravel's `cors.php`, ensuring `SANCTUM_STATEFUL_DOMAINS` mapped to the Vite development ports, and configuring Axios to always include credentials.
+- **UI Styling Conflicts:** Integrating PrimeVue alongside Tailwind CSS v4 initially caused some CSS reset clashes that misaligned icons and disrupted the dark theme. I resolved this by manually auditing the CSS and adjusting Tailwind utility classes to perfectly compliment PrimeVue's component structures.
 
-* **Backend:** Laravel 11, PHP 8.2+, SQLite, Laravel Sanctum, Laravel Breeze.
-* **Frontend:** Vue 3 (Composition API), Vite, Axios, Tailwind CSS v4.
-* **AI Assistance:** I paired with an AI assistant (Google Gemini) within my IDE to accelerate boilerplate generation (like migrations, Form Requests, and repetitive Vue templates) and to help streamline the CORS configuration between Vite and Laravel Sanctum. The AI acted as a pair programmer, while I drove the architectural decisions and verified the logic.
+## 2. Tools & Libraries
 
-## Setup Instructions
+**Backend:**
+- Laravel 11 (PHP Framework)
+- Laravel Breeze (Authentication starter kit)
+- Laravel Sanctum (API Authentication)
+- MySQL (Database)
 
-### 1. Backend Setup
+**Frontend:**
+- Vue 3 (Composition API)
+- Vite (Build tool & dev server)
+- PrimeVue v4 (Component library for DataTable, Dialogs, Forms)
+- Tailwind CSS v4 (Utility-first CSS styling)
+- Axios (HTTP client)
 
-Navigate to the `Backend` directory and run the following commands:
+**Developer & AI Tools:**
+- **Laragon:** Used for local development (Apache & MySQL).
+- **AI Assistant:** Used an AI pair-programming assistant to rapidly scaffold Laravel migrations, configure complex CORS/Sanctum setups, debug frontend alignment issues, and generate boilerplate API controllers. The AI significantly accelerated the debugging phase of cross-origin requests.
 
-```bash
-cd Backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
-```
+## 3. External Resources
 
-*Note: The database is pre-seeded with the administrator account: `admin@admin.com` / `password`.*
+- [Laravel 11 Documentation](https://laravel.com/docs) - Specifically Eloquent Observers and Sanctum routing.
+- [Vue 3 Composition API Docs](https://vuejs.org/guide/introduction.html)
+- [PrimeVue v4 Component Library](https://primevue.org/) - Referenced for DataTable styling, Dialogs, and IconField implementations.
+- [Tailwind CSS v4 Docs](https://tailwindcss.com/docs)
 
-### 2. Frontend Setup
+## 4. Setup Instructions
 
-Open a **new terminal window**, navigate to the `Frontend` directory, and start the Vite development server:
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js & npm
+- MySQL (Laragon, XAMPP, or Docker)
 
-```bash
-cd Frontend
-npm install
-npm run dev
-```
+### Backend Setup
+1. Open a terminal and navigate to the backend folder:
+   ```bash
+   cd Backend
+   ```
+2. Install PHP dependencies:
+   ```bash
+   composer install
+   ```
+3. Setup your environment variables:
+   - Copy `.env.example` to `.env`
+   - Open `.env` and configure your database credentials (e.g., `DB_DATABASE=laxamana_exam`, `DB_USERNAME=root`, `DB_PASSWORD=`).
+4. Generate the application key:
+   ```bash
+   php artisan key:generate
+   ```
+5. Run migrations and seed the database (this will create the admin user):
+   ```bash
+   php artisan migrate --seed
+   ```
+6. Start the Laravel development server:
+   ```bash
+   php artisan serve
+   ```
+   *The backend will now be running at `http://localhost:8000`*
 
-### 3. Usage
+### Frontend Setup
+1. Open a **new** terminal and navigate to the frontend folder:
+   ```bash
+   cd Frontend
+   ```
+2. Install JavaScript dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *The frontend will now be running (usually at `http://localhost:5173` or `5174`). Check your terminal for the exact URL.*
 
-1. Make sure both `php artisan serve` (port 8000) and `npm run dev` (port 5174) are running simultaneously.
-2. Open your browser and go to the Laravel Backend: `http://localhost:8000/login`
-3. Log in with `admin@admin.com` and `password`.
-4. Open a new tab and go to the Vue Frontend: `http://localhost:5174`
-5. You can now use the fully decoupled SPA to view, search, create, edit, and delete employees dynamically
+### Testing the Application
+1. Open `http://localhost:8000/login` in your browser.
+2. Log in using the seeded administrator credentials:
+   - **Email:** `admin@admin.com`
+   - **Password:** `password`
+3. Open your Vue SPA URL (e.g., `http://localhost:5173`) in the same browser to interact with the fully dynamic Employee management panel!
