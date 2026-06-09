@@ -71,18 +71,23 @@ Make sure you have the following installed:
    ```bash
    composer install
    ```
-3. Set up your environment variables:
+3. Install the NPM dependencies and build the backend assets (required for the login page):
+   ```bash
+   npm install
+   npm run build
+   ```
+4. Set up your environment variables:
    - Duplicate the `.env.example` file and rename it to `.env`.
    - Open `.env` and enter your database credentials (e.g., `DB_DATABASE=laxamana_exam`, `DB_USERNAME=root`).
-4. Generate the application encryption key:
+5. Generate the application encryption key:
    ```bash
    php artisan key:generate
    ```
-5. Run the migrations and seed the initial admin user:
+6. Run the migrations and seed the initial admin user:
    ```bash
    php artisan migrate --seed
    ```
-6. Start the Laravel development server:
+7. Start the Laravel development server:
    ```bash
    php artisan serve
    ```
